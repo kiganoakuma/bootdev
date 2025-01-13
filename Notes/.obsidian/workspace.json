@@ -1,0 +1,170 @@
+{
+  "main": {
+    "id": "2b7f85cc5dd2bcab",
+    "type": "split",
+    "children": [
+      {
+        "id": "09a2dd7f7d9bb42c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d32c393231e7af87",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Git Course.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Git Course"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b4d8db01b9e00d7c",
+    "type": "split",
+    "children": [
+      {
+        "id": "99f45e0a20f282bb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "86f0a421417fa408",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5dd0d2c3b559cec9",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "d32f4b69d248eb32",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "eb0957fbe4b9fd6d",
+    "type": "split",
+    "children": [
+      {
+        "id": "b221a76a524ec2cf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "98401c5c726a87e6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Git Course.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Git Course"
+            }
+          },
+          {
+            "id": "a4ba645a9a4bd598",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Git Course.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Git Course"
+            }
+          },
+          {
+            "id": "19b5904025b65304",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8ed7b0ab557a1bb5",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Git Course.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Git Course"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "d32c393231e7af87",
+  "lastOpenFiles": [
+    "Git Course.md",
+    "Welcome.md"
+  ]
+}
