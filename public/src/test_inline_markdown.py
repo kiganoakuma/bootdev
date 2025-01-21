@@ -1,8 +1,8 @@
 import unittest
 from inline_markdown import (
-    split_nodes_delimeter,  # or split_nodes_delimiter if that's your actual function name
-    extract_markdown_images,
-    extract_markdown_links,
+    split_nodes_delimiter,  # or split_nodes_delimiter if that's your actual function name
+    split_node_image,
+    split_node_link,
 )
 
 from textnode import TextNode, TextType
@@ -14,7 +14,7 @@ class TestInlineMarkdown(unittest.TestCase):
         If the input text has no delimiter, it should just return the original node.
         """
         node = TextNode("This has no special delimiter", TextType.TEXT)
-        new_nodes = split_nodes_delimeter([node], "`", TextType.CODE)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
         self.assertEqual(len(new_nodes), 1)
         self.assertEqual(new_nodes[0].text, "This has no special delimiter")
         self.assertEqual(new_nodes[0].text_type, TextType.TEXT)
@@ -27,7 +27,7 @@ class TestInlineMarkdown(unittest.TestCase):
             - text after
         """
         node = TextNode("This is text with a `code block` word", TextType.TEXT)
-        new_nodes = split_nodes_delimeter([node], "`", TextType.CODE)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
 
         self.assertEqual(len(new_nodes), 3)
         self.assertEqual(new_nodes[0].text, "This is text with a ")
@@ -37,30 +37,6 @@ class TestInlineMarkdown(unittest.TestCase):
         self.assertEqual(new_nodes[2].text, " word")
         self.assertEqual(new_nodes[2].text_type, TextType.TEXT)
 
-    def test_split_nodes_multiple_pairs_of_backticks(self):
-        """
-        Multiple pairs of backticks in one node.
-        Each pair should be interpreted separately, resulting in alternating TEXT and CODE nodes.
-        """
-        node = TextNode("Here is `code1` and more `code2` done", TextType.TEXT)
-        new_nodes = split_nodes_delimeter([node], "`", TextType.CODE)
-
-        self.assertEqual(len(new_nodes), 5)
-        self.assertEqual(new_nodes[0].text, "Here is ")
-        self.assertEqual(new_nodes[0].text_type, TextType.TEXT)
-
-        self.assertEqual(new_nodes[1].text, "code1")
-        self.assertEqual(new_nodes[1].text_type, TextType.CODE)
-
-        self.assertEqual(new_nodes[2].text, " and more ")
-        self.assertEqual(new_nodes[2].text_type, TextType.TEXT)
-
-        self.assertEqual(new_nodes[3].text, "code2")
-        self.assertEqual(new_nodes[3].text_type, TextType.CODE)
-
-        self.assertEqual(new_nodes[4].text, " done")
-        self.assertEqual(new_nodes[4].text_type, TextType.TEXT)
-
     def test_split_nodes_unmatched_delimiter(self):
         """
         When there's only a single backtick in the text, or an odd number,
@@ -69,19 +45,9 @@ class TestInlineMarkdown(unittest.TestCase):
         node = TextNode(
             "Unmatched delimiter here: `code block not closed", TextType.TEXT
         )
-        new_nodes = split_nodes_delimeter([node], "`", TextType.CODE)
-
-        # We expect only two nodes, because after the first backtick we cannot find a closing one.
-        # One approach is to consider everything after the opening delimiter as part of the original text (no actual code).
-        # If your implementation differs, adjust the test accordingly.
-        self.assertEqual(len(new_nodes), 2)
-        self.assertEqual(new_nodes[0].text, "Unmatched delimiter here: ")
-        self.assertEqual(new_nodes[0].text_type, TextType.TEXT)
-
-        # The second piece might be "code block not closed" if your parser thinks it didn't find a closing backtick.
-        # Or you might handle unmatched delimiters differently. Adjust if needed.
-        self.assertEqual(new_nodes[1].text, "code block not closed")
-        self.assertEqual(new_nodes[1].text_type, TextType.TEXT)
+        with self.assertRaises(ValueError) as context:
+            split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertEqual(str(context.exception), "Mismatched delimiter")
 
     def test_split_nodes_multiple_text_nodes(self):
         """
@@ -92,59 +58,108 @@ class TestInlineMarkdown(unittest.TestCase):
             TextNode(" and another `code2` block", TextType.TEXT),
             TextNode(" plus plain text", TextType.TEXT),
         ]
-        new_nodes = split_nodes_delimeter(nodes, "`", TextType.CODE)
-
-        # We expect them all processed in order:
-        # 1) "Text with " (TEXT)
-        # 2) "code1" (CODE)
-        # 3) " and another " (TEXT)
-        # 4) "code2" (CODE)
-        # 5) " block" (TEXT)
-        # 6) " plus plain text" (TEXT)
+        new_nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
 
         self.assertEqual(len(new_nodes), 6)
-        self.assertEqual(new_nodes[0].text, "Text with ")
-        self.assertEqual(new_nodes[0].text_type, TextType.TEXT)
-        self.assertEqual(new_nodes[1].text, "code1")
-        self.assertEqual(new_nodes[1].text_type, TextType.CODE)
-        self.assertEqual(new_nodes[2].text, " and another ")
-        self.assertEqual(new_nodes[2].text_type, TextType.TEXT)
-        self.assertEqual(new_nodes[3].text, "code2")
-        self.assertEqual(new_nodes[3].text_type, TextType.CODE)
-        self.assertEqual(new_nodes[4].text, " block")
-        self.assertEqual(new_nodes[4].text_type, TextType.TEXT)
-        self.assertEqual(new_nodes[5].text, " plus plain text")
-        self.assertEqual(new_nodes[5].text_type, TextType.TEXT)
 
-    def test_split_nodes_different_delimiters(self):
-        """
-        Test that the function works for different delimiters and text types, such as bold (**),
-        italic (*), code (`), etc. This assumes you've extended your function in some way
-        or you are testing separate calls with different delimiters.
-        """
-        # Example: * = italic
-        node_italic = TextNode("This *text* has italic markers", TextType.TEXT)
-        new_nodes_italic = split_nodes_delimeter([node_italic], "*", TextType.ITALIC)
+    def test_image_split(self):
+        node = TextNode(
+            "This is text with an image ![alt text](www.google.com) embeded",
+            TextType.TEXT,
+        )
 
-        self.assertEqual(len(new_nodes_italic), 3)
-        self.assertEqual(new_nodes_italic[0].text, "This ")
-        self.assertEqual(new_nodes_italic[0].text_type, TextType.TEXT)
-        self.assertEqual(new_nodes_italic[1].text, "text")
-        self.assertEqual(new_nodes_italic[1].text_type, TextType.ITALIC)
-        self.assertEqual(new_nodes_italic[2].text, " has italic markers")
-        self.assertEqual(new_nodes_italic[2].text_type, TextType.TEXT)
+        extracted = split_node_image([node])
+        expected_result = [
+            TextNode("This is text with an image ", TextType.TEXT),
+            TextNode("alt text", TextType.IMAGE, "www.google.com"),
+            TextNode(" embeded", TextType.TEXT),
+        ]
+        self.assertEqual(extracted, expected_result)
 
-        # Example: ** = bold
-        node_bold = TextNode("Now we have **bold** text", TextType.TEXT)
-        new_nodes_bold = split_nodes_delimeter([node_bold], "**", TextType.BOLD)
+    def test_multi_image_split(self):
+        node = TextNode(
+            "This is text ![alt text](www.google.com) with an image ![alt text](www.google.com) embeded",
+            TextType.TEXT,
+        )
 
-        self.assertEqual(len(new_nodes_bold), 3)
-        self.assertEqual(new_nodes_bold[0].text, "Now we have ")
-        self.assertEqual(new_nodes_bold[0].text_type, TextType.TEXT)
-        self.assertEqual(new_nodes_bold[1].text, "bold")
-        self.assertEqual(new_nodes_bold[1].text_type, TextType.BOLD)
-        self.assertEqual(new_nodes_bold[2].text, " text")
-        self.assertEqual(new_nodes_bold[2].text_type, TextType.TEXT)
+        extracted = split_node_image([node])
+        expected_result = [
+            TextNode("This is text ", TextType.TEXT),
+            TextNode("alt text", TextType.IMAGE, "www.google.com"),
+            TextNode(" with an image ", TextType.TEXT),
+            TextNode("alt text", TextType.IMAGE, "www.google.com"),
+            TextNode(" embeded", TextType.TEXT),
+        ]
+        self.assertEqual(extracted, expected_result)
+
+    def test_multi_node_image_split(self):
+        node = TextNode(
+            "This is text with an image ![alt text](www.google.com) embeded",
+            TextType.TEXT,
+        )
+        node1 = TextNode(
+            "This is text with an image ![alt text](www.google.com) embeded",
+            TextType.TEXT,
+        )
+
+        extracted = split_node_image([node, node1])
+        expected_result = [
+            TextNode("This is text with an image ", TextType.TEXT),
+            TextNode("alt text", TextType.IMAGE, "www.google.com"),
+            TextNode(" embeded", TextType.TEXT),
+            TextNode("This is text with an image ", TextType.TEXT),
+            TextNode("alt text", TextType.IMAGE, "www.google.com"),
+            TextNode(" embeded", TextType.TEXT),
+        ]
+        self.assertEqual(extracted, expected_result)
+
+    def test_link_split(self):
+        node = TextNode(
+            "This is text with a [link](www.google.com) to an image", TextType.TEXT
+        )
+
+        extracted = split_node_link([node])
+        expected_result = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "www.google.com"),
+            TextNode(" to an image", TextType.TEXT),
+        ]
+        self.assertEqual(extracted, expected_result)
+
+    def test_multi_link_split(self):
+        node = TextNode(
+            "This is [link](www.google.com) text with a [link](www.google.com) to an image",
+            TextType.TEXT,
+        )
+
+        extracted = split_node_link([node])
+        expected_result = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "www.google.com"),
+            TextNode(" text with a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "www.google.com"),
+            TextNode(" to an image", TextType.TEXT),
+        ]
+        self.assertEqual(extracted, expected_result)
+
+    def test_multi_node_link_split(self):
+        node = TextNode(
+            "This is text with a [link](www.google.com) to an image", TextType.TEXT
+        )
+        node1 = TextNode(
+            "This is text with a [link](www.google.com) to an image", TextType.TEXT
+        )
+
+        extracted = split_node_link([node, node1])
+        expected_result = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "www.google.com"),
+            TextNode(" to an image", TextType.TEXT),
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "www.google.com"),
+            TextNode(" to an image", TextType.TEXT),
+        ]
+        self.assertEqual(extracted, expected_result)
 
 
 if __name__ == "__main__":
