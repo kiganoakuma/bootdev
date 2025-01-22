@@ -3,6 +3,8 @@ from inline_markdown import (
     split_nodes_delimiter,  # or split_nodes_delimiter if that's your actual function name
     split_node_image,
     split_node_link,
+    text_to_textnode,
+    markdown_to_block,
 )
 
 from textnode import TextNode, TextType
@@ -160,6 +162,47 @@ class TestInlineMarkdown(unittest.TestCase):
             TextNode(" to an image", TextType.TEXT),
         ]
         self.assertEqual(extracted, expected_result)
+
+    def test_text_to_textnode_basic(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+
+        nodes = text_to_textnode(text)
+        self.assertEqual(
+            nodes,
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+        )
+
+    def test_markdown_to_block(self):
+        doc = """# This is a heading
+
+This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+
+* This is the first list item in a list block
+* This is a list item
+* This is another list item"""
+
+        blocks = markdown_to_block(doc)
+        self.assertEqual(
+            blocks,
+            [
+                "# This is a heading",
+                "This is a paragraph of text. It has some **bold** and *italic* words inside of it.",
+                "* This is the first list item in a list block\n* This is a list item\n* This is another list item",
+            ],
+        )
 
 
 if __name__ == "__main__":

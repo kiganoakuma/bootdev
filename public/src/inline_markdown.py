@@ -24,7 +24,7 @@ def split_node_image(old_nodes):
             text = text[match.end() :]
         if text != "":
             new_nodes.extend([TextNode(text, TextType.TEXT)])
-        else:
+        if len(new_nodes) == 0:
             raise ValueError("No images found in text")
     return new_nodes
 
@@ -51,8 +51,8 @@ def split_node_link(old_nodes):
             text = text[match.end() :]
         if text != "":
             new_nodes.extend([TextNode(text, TextType.TEXT)])
-        else:
-            raise ValueError("No images found in text")
+        if len(new_nodes) == 0:
+            raise ValueError("No links found in text")
     return new_nodes
 
 
@@ -64,9 +64,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         text = node.text
         match_types = {
             "**": r"\*\*(.*?)\*\*",
-            "__": r"__(.*?)__",
             "*": r"\*(.*?)\*",
-            "_": r"_(.*?)_",
             "`": r"\`(.*?)\`",
         }
 
@@ -97,3 +95,54 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.extend([TextNode(text, TextType.TEXT)])
 
     return new_nodes
+
+
+def convert_to_html_nodes(node):
+    html_nodes = []
+    delimiter_map = {
+        "**": TextType.BOLD,
+        "*": TextType.ITALIC,
+        "`": TextType.CODE,
+    }
+
+    node, type = node
+    if type in delimiter_map:
+        html_nodes.extend(split_nodes_delimiter([node], type, delimiter_map[type]))
+    if type == "![":
+        html_nodes.extend(split_node_image([node]))
+
+    if type == "[":
+        html_nodes.extend(split_node_link([node]))
+
+    return html_nodes
+
+
+def text_to_textnode(text):
+    nodes = []
+    match_types = {
+        "**": r"\*\*(.*?)\*\*",
+        "__": r"__(.*?)__",
+        "*": r"\*(.*?)\*",
+        "_": r"_(.*?)_",
+        "`": r"\`(.*?)\`",
+        "![": r"\!\[(.*?)\]\((.*?)\)",
+        "[": r"\[(.*?)\]\((.*?)\)",
+    }
+
+    for type, pattern in match_types.items():
+        while True:
+            match = re.search(pattern, text)
+            if not match:
+                break
+
+            matched_text, inner_text, pre_text, post_text = (
+                match.group(0),
+                match.group(1),
+                text[: match.start()],
+                text[match.end() :],
+            )
+            t_node = (TextNode(pre_text + matched_text, TextType.TEXT), type)
+            nodes.extend(convert_to_html_nodes(t_node))
+            text = post_text
+
+    return nodes
