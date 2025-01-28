@@ -1,8 +1,9 @@
 import unittest
+
 from markdown_blocks import (
-    markdown_to_html_node,
-    markdown_to_blocks,
     block_to_block_type,
+    markdown_to_blocks,
+    markdown_to_html_node,
 )
 
 
@@ -141,7 +142,6 @@ this is paragraph text
 """
 
         node = markdown_to_html_node(md)
-        print(f"\n{node}")
         html = node.to_html()
         self.assertEqual(
             html,

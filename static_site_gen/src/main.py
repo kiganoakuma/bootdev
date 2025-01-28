@@ -1,22 +1,47 @@
-import os
-from os.path import isdir
-import shutil
+from pathlib import Path
+
+from markdown_blocks import markdown_to_blocks, markdown_to_html_node
+from pub_update import copy_files, wipe_dir_contents
 
 
-def wipe_dir_contents(dir):
-    for item in os.listdir(dir):
-        item_path = os.path.join(dir, item)
-        if os.path.isfile(item_path) or os.path.islink(item_path):
-            os.remove(item_path)
-        elif os.path.isdir(item_path):
-            shutil.rmtree(item_path)
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    h1_header = [block[2:] for block in blocks if block.startswith("# ")]
+    if h1_header:
+        return h1_header[0]
+    else:
+        raise Exception("No h1 header found")
+
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+
+    try:
+        markdown_contents = Path(from_path).read_text(encoding="utf-8")
+        h1_header = extract_title(markdown_contents)
+        node = markdown_to_html_node(markdown_contents)
+        html_content = node.to_html()
+
+        html = Path(template_path).read_text(encoding="utf-8")
+        filled_template = html.replace("{{ Content }}", html_content)
+        filled_template = filled_template.replace("{{ Title }}", h1_header)
+
+        Path(dest_path).write_text(filled_template, encoding="utf-8")
+    except FileNotFoundError as e:
+        print(f"Error: Could not find file: {e.filename}")
+    except Exception as e:
+        print(f"Error Generating page: {e}")
 
 
 def main():
-    static_dir = "/Users/kiga/bootDev/static_site_gen/static/"
-    pub_dir = "/Users/kiga/bootDev/static_site_gen/public/"
+    static_dir = "./static"
+    pub_dir = "./public"
     wipe_dir_contents(pub_dir)
-    shutil.copytree(static_dir, pub_dir, dirs_exist_ok=True)
+    copy_files(static_dir, pub_dir)
+    from_path = "./content/index.md"
+    dest_path = "./public/index.html"
+    template_path = "./template.html"
+    generate_page(from_path, template_path, dest_path)
 
 
 if __name__ == "__main__":
