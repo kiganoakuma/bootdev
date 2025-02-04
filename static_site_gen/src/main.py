@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import os
 from markdown_blocks import markdown_to_blocks, markdown_to_html_node
 from pub_update import copy_files, wipe_dir_contents
 
@@ -31,6 +31,21 @@ def generate_page(from_path, template_path, dest_path):
         print(f"Error: Could not find file: {e.filename}")
     except Exception as e:
         print(f"Error Generating page: {e}")
+
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    for filename in os.listdir(dir_path_content):
+        file_path = os.path.join(dir_path_content, filename)
+        print(f"Looking at: {file_path}")
+
+        if os.path.isfile(file_path):
+            if filename == "index.md":
+                # Here you'll add your page generation logic later
+                generate_page(file_path, template_path, dest_dir_path)
+        elif os.path.isdir(file_path):
+            generate_pages_recursive(
+                dir_path_content, template_path, dest_dir_path
+            )  # Recurse into subdirectories
 
 
 def main():
